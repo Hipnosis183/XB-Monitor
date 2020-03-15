@@ -1,0 +1,119 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="udis86">
+      <UniqueIdentifier>{43ad2b1c-d088-4109-8acf-1f3af31aa1a1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Shared\Config.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\DInput.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DIWrapper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Hook.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Hooker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="udis86\decode.c">
+      <Filter>udis86</Filter>
+    </ClCompile>
+    <ClCompile Include="udis86\input.c">
+      <Filter>udis86</Filter>
+    </ClCompile>
+    <ClCompile Include="udis86\itab.c">
+      <Filter>udis86</Filter>
+    </ClCompile>
+    <ClCompile Include="udis86\syn-att.c">
+      <Filter>udis86</Filter>
+    </ClCompile>
+    <ClCompile Include="udis86\syn-intel.c">
+      <Filter>udis86</Filter>
+    </ClCompile>
+    <ClCompile Include="udis86\syn.c">
+      <Filter>udis86</Filter>
+    </ClCompile>
+    <ClCompile Include="udis86\udis86.c">
+      <Filter>udis86</Filter>
+    </ClCompile>
+    <ClCompile Include="Dllmain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Log.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Adapter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DWrapper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Shared\DInput.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\Shared.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="XB-Monitor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="udis86\decode.h">
+      <Filter>udis86</Filter>
+    </ClInclude>
+    <ClInclude Include="udis86\extern.h">
+      <Filter>udis86</Filter>
+    </ClInclude>
+    <ClInclude Include="udis86\input.h">
+      <Filter>udis86</Filter>
+    </ClInclude>
+    <ClInclude Include="udis86\itab.h">
+      <Filter>udis86</Filter>
+    </ClInclude>
+    <ClInclude Include="udis86\syn.h">
+      <Filter>udis86</Filter>
+    </ClInclude>
+    <ClInclude Include="udis86\types.h">
+      <Filter>udis86</Filter>
+    </ClInclude>
+    <ClInclude Include="udis86\udis86.h">
+      <Filter>udis86</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DWrapper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="export.def">
+      <Filter>Source Files</Filter>
+    </None>
+  </ItemGroup>
+</Project>
