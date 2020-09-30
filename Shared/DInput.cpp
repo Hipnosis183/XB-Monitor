@@ -198,14 +198,28 @@ int TTX_InputManager::Poll()
 				
 					case POVN:
 					{
-						// To avoid problems, mapped POVs are disabled and forced to work as Axis if PovAsAxis option is enabled
+						// To avoid problems, mapped POVs are disabled and forced to work as Axis if PovAsAxis option is enabled.
 						
 						if ((js[joyNum].rgdwPOV[0] != -1) && (configMgr.GetConfig(TTX_CONFIG_POVASAXIS) == 0))
 						{
-							if (js[joyNum].rgdwPOV[0] == GET_JOY_RANGE(val))
+							if (GET_JOY_RANGE(val) == POV_UP && (dir == POV_UP || dir == POV_UP_RIGHT || dir == POV_LEFT_UP))
 							{
 								stateTable[i] = 1;
-								break;
+							}
+
+							if (GET_JOY_RANGE(val) == POV_RIGHT && (dir == POV_RIGHT || dir == POV_RIGHT_DOWN || dir == POV_UP_RIGHT))
+							{
+								stateTable[i] = 1;
+							}
+
+							if (GET_JOY_RANGE(val) == POV_DOWN && (dir == POV_DOWN || dir == POV_DOWN_LEFT || dir == POV_RIGHT_DOWN))
+							{
+								stateTable[i] = 1;
+							}
+
+							if (GET_JOY_RANGE(val) == POV_LEFT && (dir == POV_LEFT || dir == POV_LEFT_UP || dir == POV_DOWN_LEFT))
+							{
+								stateTable[i] = 1;
 							}
 						}
 						

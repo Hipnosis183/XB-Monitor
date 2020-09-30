@@ -131,7 +131,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	
 	proc = new LProcess(argv[1]);
 	
-	proc->InjectDLL(_T("xb_monitor.dll"));
+	proc->InjectDLL(_T("XB-Monitor.dll"));
 	proc->Resume();
 	proc->Wait();
 	

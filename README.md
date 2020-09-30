@@ -13,5 +13,4 @@ Some features were added/changed/removed:
 - Deactivated logging function (can be reactivated in code)
 - Removed all DirectDraw stuff
 - Fixed some bugs in Direct3D wrapper
-
-The Config has been removed from the project, since the library is meant to be used with a series of WIP loaders that will replace it. Still, it can be used with the original Config program (but with the limited input mapping of it), or manual editing of the configuration files.
+- Developed a new configuration user interface
