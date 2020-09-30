@@ -56,7 +56,7 @@ namespace XBMonitor
             XBConfig.LoadInput(Button_P1_Left, 0x14);
             XBConfig.LoadInput(Button_P1_Right, 0x18);
             XBConfig.LoadInput(Button_P1_Start, 0x00);
-            XBConfig.LoadInput(Button_P1_Service, 0x18);
+            XBConfig.LoadInput(Button_P1_Service, 0x68);
             XBConfig.LoadInput(Button_P1_ButtonA, 0x1C);
             XBConfig.LoadInput(Button_P1_ButtonB, 0x20);
             XBConfig.LoadInput(Button_P1_ButtonC, 0x24);
@@ -238,7 +238,7 @@ namespace XBMonitor
             XBConfig.SetInput(Button_P1_Left, 0x14);
             XBConfig.SetInput(Button_P1_Right, 0x18);
             XBConfig.SetInput(Button_P1_Start, 0x00);
-            XBConfig.SetInput(Button_P1_Service, 0x18);
+            XBConfig.SetInput(Button_P1_Service, 0x68);
             XBConfig.SetInput(Button_P1_ButtonA, 0x1C);
             XBConfig.SetInput(Button_P1_ButtonB, 0x20);
             XBConfig.SetInput(Button_P1_ButtonC, 0x24);
@@ -273,7 +273,7 @@ namespace XBMonitor
             XBConfig.ClearInput(Button_P1_Left, 0x14);
             XBConfig.ClearInput(Button_P1_Right, 0x18);
             XBConfig.ClearInput(Button_P1_Start, 0x00);
-            XBConfig.ClearInput(Button_P1_Service, 0x18);
+            XBConfig.ClearInput(Button_P1_Service, 0x68);
             XBConfig.ClearInput(Button_P1_ButtonA, 0x1C);
             XBConfig.ClearInput(Button_P1_ButtonB, 0x20);
             XBConfig.ClearInput(Button_P1_ButtonC, 0x24);
