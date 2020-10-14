@@ -102,7 +102,6 @@ namespace XBMonitor
             this.Button_P0_Test = new System.Windows.Forms.Button();
             this.Button_P0_Exit = new System.Windows.Forms.Button();
             this.GroupBox_Options = new System.Windows.Forms.GroupBox();
-            this.CheckBox_Fullscreen = new System.Windows.Forms.CheckBox();
             this.PictureBox_Logo = new System.Windows.Forms.PictureBox();
             this.LinkLabel_Romhack = new System.Windows.Forms.LinkLabel();
             this.LinkLabel_Hipnosis = new System.Windows.Forms.LinkLabel();
@@ -812,7 +811,7 @@ namespace XBMonitor
             this.CheckBox_POV.BackColor = System.Drawing.Color.Transparent;
             this.CheckBox_POV.Checked = true;
             this.CheckBox_POV.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.CheckBox_POV.Location = new System.Drawing.Point(10, 57);
+            this.CheckBox_POV.Location = new System.Drawing.Point(10, 30);
             this.CheckBox_POV.Name = "CheckBox_POV";
             this.CheckBox_POV.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.CheckBox_POV.Size = new System.Drawing.Size(76, 17);
@@ -868,38 +867,22 @@ namespace XBMonitor
             // GroupBox_Options
             // 
             this.GroupBox_Options.BackColor = System.Drawing.SystemColors.HighlightText;
-            this.GroupBox_Options.Controls.Add(this.CheckBox_Fullscreen);
             this.GroupBox_Options.Controls.Add(this.CheckBox_POV);
             this.GroupBox_Options.Location = new System.Drawing.Point(332, 191);
             this.GroupBox_Options.Name = "GroupBox_Options";
             this.GroupBox_Options.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.GroupBox_Options.Size = new System.Drawing.Size(92, 84);
+            this.GroupBox_Options.Size = new System.Drawing.Size(92, 58);
             this.GroupBox_Options.TabIndex = 6;
             this.GroupBox_Options.TabStop = false;
             this.GroupBox_Options.Text = "Options";
-            // 
-            // CheckBox_Fullscreen
-            // 
-            this.CheckBox_Fullscreen.AutoSize = true;
-            this.CheckBox_Fullscreen.BackColor = System.Drawing.Color.Transparent;
-            this.CheckBox_Fullscreen.Checked = true;
-            this.CheckBox_Fullscreen.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.CheckBox_Fullscreen.Location = new System.Drawing.Point(10, 30);
-            this.CheckBox_Fullscreen.Name = "CheckBox_Fullscreen";
-            this.CheckBox_Fullscreen.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.CheckBox_Fullscreen.Size = new System.Drawing.Size(74, 17);
-            this.CheckBox_Fullscreen.TabIndex = 1;
-            this.CheckBox_Fullscreen.Text = "Fullscreen";
-            this.CheckBox_Fullscreen.UseVisualStyleBackColor = false;
-            this.CheckBox_Fullscreen.CheckedChanged += new System.EventHandler(this.CheckBox_Fullscreen_CheckedChanged);
             // 
             // PictureBox_Logo
             // 
             this.PictureBox_Logo.BackColor = System.Drawing.Color.Transparent;
             this.PictureBox_Logo.Image = global::XBMonitor.Properties.Resources.Logo;
-            this.PictureBox_Logo.Location = new System.Drawing.Point(24, 12);
+            this.PictureBox_Logo.Location = new System.Drawing.Point(23, 12);
             this.PictureBox_Logo.Name = "PictureBox_Logo";
-            this.PictureBox_Logo.Size = new System.Drawing.Size(396, 83);
+            this.PictureBox_Logo.Size = new System.Drawing.Size(400, 82);
             this.PictureBox_Logo.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.PictureBox_Logo.TabIndex = 6;
             this.PictureBox_Logo.TabStop = false;
@@ -909,7 +892,7 @@ namespace XBMonitor
             this.LinkLabel_Romhack.AutoSize = true;
             this.LinkLabel_Romhack.BackColor = System.Drawing.Color.Transparent;
             this.LinkLabel_Romhack.LinkColor = System.Drawing.Color.Red;
-            this.LinkLabel_Romhack.Location = new System.Drawing.Point(313, 87);
+            this.LinkLabel_Romhack.Location = new System.Drawing.Point(316, 101);
             this.LinkLabel_Romhack.Name = "LinkLabel_Romhack";
             this.LinkLabel_Romhack.Size = new System.Drawing.Size(53, 13);
             this.LinkLabel_Romhack.TabIndex = 0;
@@ -923,7 +906,7 @@ namespace XBMonitor
             this.LinkLabel_Hipnosis.AutoSize = true;
             this.LinkLabel_Hipnosis.BackColor = System.Drawing.Color.Transparent;
             this.LinkLabel_Hipnosis.LinkColor = System.Drawing.Color.Red;
-            this.LinkLabel_Hipnosis.Location = new System.Drawing.Point(373, 87);
+            this.LinkLabel_Hipnosis.Location = new System.Drawing.Point(376, 101);
             this.LinkLabel_Hipnosis.Name = "LinkLabel_Hipnosis";
             this.LinkLabel_Hipnosis.Size = new System.Drawing.Size(47, 13);
             this.LinkLabel_Hipnosis.TabIndex = 0;
@@ -936,7 +919,7 @@ namespace XBMonitor
             // 
             this.Label_Middle.AutoSize = true;
             this.Label_Middle.BackColor = System.Drawing.Color.Transparent;
-            this.Label_Middle.Location = new System.Drawing.Point(365, 87);
+            this.Label_Middle.Location = new System.Drawing.Point(368, 101);
             this.Label_Middle.Name = "Label_Middle";
             this.Label_Middle.Size = new System.Drawing.Size(9, 13);
             this.Label_Middle.TabIndex = 0;
@@ -1065,6 +1048,5 @@ namespace XBMonitor
         private LinkLabel LinkLabel_Romhack;
         private LinkLabel LinkLabel_Hipnosis;
         private Label Label_Middle;
-        public CheckBox CheckBox_Fullscreen;
     }
 }

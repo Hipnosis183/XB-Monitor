@@ -31,6 +31,7 @@ namespace XBMonitor
             XBConfig.LoadController(ComboBox_Device);
 
             LoadInputs();
+            LoadMisc();
         }
 
         private void LoadInputs()
@@ -44,9 +45,6 @@ namespace XBMonitor
         {
             XBConfig.LoadInput(Button_P0_Test, 0x08);
             XBConfig.LoadInput(Button_P0_Exit, 0x6C);
-
-            XBConfig.GetCheck(CheckBox_Fullscreen, 0x00);
-            XBConfig.GetCheck(CheckBox_POV, 0x04);
         }
 
         private void LoadInputs_P1()
@@ -79,6 +77,11 @@ namespace XBMonitor
             XBConfig.LoadInput(Button_P2_ButtonD, 0x5C);
             XBConfig.LoadInput(Button_P2_ButtonE, 0x60);
             XBConfig.LoadInput(Button_P2_ButtonF, 0x64);
+        }
+
+        private void LoadMisc()
+        {
+            XBConfig.GetCheck(CheckBox_POV, 0x00);
         }
 
         private void ComboBox_Device_SelectedIndexChanged(object sender, EventArgs e)
@@ -221,14 +224,9 @@ namespace XBMonitor
             XBConfig.Button_Click(Button_P0_Exit, 0x6C, e);
         }
 
-        private void CheckBox_Fullscreen_CheckedChanged(object sender, EventArgs e)
-        {
-            XBConfig.SetConfig_CheckBox(CheckBox_Fullscreen, 0x00);
-        }
-
         private void CheckBox_POV_CheckedChanged(object sender, EventArgs e)
         {
-            XBConfig.SetConfig_CheckBox(CheckBox_POV, 0x04);
+            XBConfig.SetConfig_CheckBox(CheckBox_POV, 0x00);
         }
 
         private void Button_P1_SetAll_Click(object sender, EventArgs e)

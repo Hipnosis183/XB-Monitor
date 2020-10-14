@@ -10,7 +10,6 @@
 
 #include <stdio.h>
 
-
 #ifdef _MSC_VER
 # define FMT64 "%I64"
   typedef unsigned __int8 uint8_t;

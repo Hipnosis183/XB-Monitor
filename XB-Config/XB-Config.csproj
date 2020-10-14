@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{E88B54BF-E858-4DCA-B52A-C1E26427AD3A}</ProjectGuid>
+    <ProjectGuid>{82EC9CED-4DB4-4EC1-9FE2-29E281E81F15}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <RootNamespace>XBMonitor</RootNamespace>
     <AssemblyName>XB-Config</AssemblyName>

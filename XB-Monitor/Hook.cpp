@@ -1,504 +1,254 @@
-//
-// XB-Monitor: Opensource EX-Board loader by Romhack
-//
+// XB-Monitor: Open-source Examu eX-BOARD loader by Romhack and Hipnosis.
 
-#include <windows.h>
-#include <string.h>
-#include "stdafx.h"
-#include <d3d9.h>
-#include <list>
-
-static const HANDLE hConnection = (HANDLE) 0xCAFEBEEF;
-
-using namespace std;
-
-std::queue<BYTE> replyBuffer;
+#include "Hook.h"
+#include "Global.h"
 
 static int isInitialized = 0;
 
-
-static LPGetCommModemStatus __GetCommModemStatus = NULL;
-static LPEscapeCommFunction __EscapeCommFunction = NULL;
-static LPClearCommError __ClearCommError = NULL;
-static LPWriteFile __WriteFile = NULL;
-static LPReadFile __ReadFile = NULL;
-static LPCloseHandle __CloseHandle = NULL;
-static LPCreateFile  __CreateFile = NULL;
-static LPSetupComm  __SetupComm = NULL;
-static LPGetCommState  __GetCommState = NULL;
-static LPSetCommState  __SetCommState = NULL;
-static LPSetCommMask  __SetCommMask = NULL;
-static LPSetCommTimeouts  __SetCommTimeouts = NULL;
-static LPGetCommTimeouts  __GetCommTimeouts = NULL;
-static LPGetWindowTextA __GetWindowTextA = NULL;
-static LPGetWindowTextW __GetWindowTextW = NULL;
-static LPGetAsyncKeyState __GetAsyncKeyState = NULL;
-static LPCreateWindowExA __CreateWindowExA = NULL;
-static LPCreateWindowExW __CreateWindowExW = NULL;
-static LPCreateFileA  __CreateFileA = NULL;
-static LPCreateFileW  __CreateFileW = NULL;
-static LPGetKeyLicense __GetKeyLicense = NULL;
-static LPChangeDisplaySettings __ChangeDisplaySettings = NULL;
-static LPExitWindowsEx __ExitWindowsEx = NULL;
-static LPShowCursor __ShowCursor = NULL;
-static LPSetCursor __SetCursor = NULL;
-static LPSetWindowPos __SetWindowPos = NULL;
-static LPCreateEventA __CreateEventA = NULL;
-static LPSleep __Sleep = NULL;
-
-
-void patch_printf()
+BOOL APIENTRY HookFunctions()
 {
-	DWORD oldProt = 0, newProt = PAGE_EXECUTE_READWRITE;
+	// eX-BOARD software function hooks.
+	HGetKeyLicense = (LPGetKeyLicense)HookIt("IpgExKey.dll", "_GetKeyLicense@0", Hook_GetKeyLicense);
+	// Games run in a borderless 640x480 window. The wrapper forces the window to run in fullscreen.
+	HOOK("D3D9.DLL", Direct3DCreate9, H, LP, Hook);
+	// This avoids to get stuck in the 640x480 resolution when the process exits.
+	HOOK("user32.dll", ChangeDisplaySettingsA, H, LP, Hook);
+	// Prevents the process to send a shutdown request to the system and all running processes.
+	HOOK("user32.dll", ExitWindowsEx, H, LP, Hook);
 	
-	VirtualProtect((void*)0x4386e6, 12, newProt, &oldProt);
+	// File operation function hooks.
+	HOOK("kernel32.dll", CreateFileA, H, LP, Hook);
+	HOOK("kernel32.dll", CreateFileW, H, LP, Hook);
+	HOOK("kernel32.dll", ReadFile, H, LP, Hook);
+	HOOK("kernel32.dll", WriteFile, H, LP, Hook);
 
-	*(DWORD *)0x4386E6 = (DWORD) &NATIVE_logmsg;
-	*(WORD * )0x4386E0 = 0x25ff;
-	*(DWORD *)0x4386E2 = 0x4386E6;
+	// Communications devices function hooks.
+	HOOK("kernel32.dll", ClearCommError, H, LP, Hook);
+	HOOK("kernel32.dll", CloseHandle, H, LP, Hook);
+	HOOK("kernel32.dll", EscapeCommFunction, H, LP, Hook);
+	HOOK("kernel32.dll", GetCommModemStatus, H, LP, Hook);
+	HOOK("kernel32.dll", GetCommState, H, LP, Hook);
+	HOOK("kernel32.dll", GetCommTimeouts, H, LP, Hook);
+	HOOK("kernel32.dll", SetCommMask, H, LP, Hook);
+	HOOK("kernel32.dll", SetCommState, H, LP, Hook);
+	HOOK("kernel32.dll", SetCommTimeouts, H, LP, Hook);
+	HOOK("kernel32.dll", SetupComm, H, LP, Hook);
 
-	VirtualProtect((void*)0x4386e6, 12, oldProt, &newProt);
-}
+	// DirectInput hooks.
+	HOOK("DINPUT8.DLL", DirectInput8Create, F, LP, Fake);
 
-
-LPVOID __stdcall SetHookFunction(LPVOID dst, LPVOID lpHookFunction, LPCTSTR name)
-{
-	DWORD oldProt = 0, newProt = PAGE_EXECUTE_READWRITE;
-
-	VirtualProtect(dst, 4, newProt, &oldProt);
-
-	#if 1
-	LPVOID ret = (LPVOID) *((DWORD*) dst); 
-	#else
-	LPVOID ret = (LPVOID) GetProcAddress(NULL, name);
-	#endif
-
-	*((DWORD *) dst) = (DWORD) lpHookFunction; 
-
-	VirtualProtect(dst, 4, oldProt, &newProt);
-
-	return ret;
-}
-
-
-#define __HOOK(addr, name) \
-__ ##name = (LP ##name) SetHookFunction((LPVOID *) addr, &Hook_ ##name, #name)
-#define __XHOOKA(mod, name) \
-__ ##name = (LP ##name) HookIt(mod, #name "A", (LPVOID) &Hook_ ##name)
-#define __XHOOKW(mod, name) \
-__ ##name = (LP ##name) HookIt(mod, #name "W", (LPVOID) &Hook_ ##name)
-#define __XHOOKn(mod, name) \
-__ ##name = (LP ##name) HookIt(mod, #name, (LPVOID) &Hook_ ##name)
-#define __XHOOKX(mod, ori, name) \
-__ ##name = (LP ##name) HookIt(mod, #ori, (LPVOID) &Hook_ ##name)
-
-
-BOOL __stdcall TTX_HookFunctions()
-{
-	/* EX-BOARD */
-	
-	__GetKeyLicense = (LPGetKeyLicense) HookIt("IpgExKey.dll", "_GetKeyLicense@0", Hook_GetKeyLicense);
-	__XHOOKA("user32.dll", ChangeDisplaySettings);
-	__XHOOKn("user32.dll", ExitWindowsEx);
-
-	__XHOOKn("kernel32.dll", CreateFileA);
-	__XHOOKn("kernel32.dll", CreateFileW);
-
-	__XHOOKn("user32.dll", CreateWindowExA);
-	__XHOOKn("user32.dll", SetWindowPos);
-
-	#if 1
-	
-	__XHOOKn("kernel32.dll", WriteFile);
-	__XHOOKn("kernel32.dll", ReadFile);
-	__XHOOKn("kernel32.dll", CloseHandle);
-	__XHOOKn("kernel32.dll", GetCommModemStatus);
-	__XHOOKn("kernel32.dll", EscapeCommFunction);
-	__XHOOKn("kernel32.dll", ClearCommError);
-	__XHOOKn("kernel32.dll", SetCommMask);
-	__XHOOKn("kernel32.dll", SetupComm);
-	__XHOOKn("kernel32.dll", GetCommState);
-	__XHOOKn("kernel32.dll", GetCommState);
-	__XHOOKn("kernel32.dll", SetCommState);
-	__XHOOKn("kernel32.dll", SetCommTimeouts);
-	__XHOOKn("kernel32.dll", GetCommTimeouts);
-
-	#endif
-	
-	__XHOOKn("dinput8.dll", DirectInput8Create);
-	__XHOOKn("d3d9.dll", Direct3DCreate9);
-	__XHOOKn("user32.dll", GetAsyncKeyState);
-	
 	return TRUE;
 }
 
-
-#undef __HOOK
-#undef __XHOOKA
-#undef __XHOOKn
-
-
-void __stdcall Hook_Sleep(DWORD cnt)
-{
-}
-
-
-HANDLE __stdcall Hook_CreateEventA(LPSECURITY_ATTRIBUTES lpEventAttributes, BOOL bManualReset, BOOL bInitialState, LPCSTR lpName)
-{
-	return __CreateEventA(lpEventAttributes, bManualReset, bInitialState, lpName);
-}
-
-
-int __stdcall Hook_GetKeyLicense(void)
+INT APIENTRY Hook_GetKeyLicense(VOID)
 {
 	return 1;
 }
 
-
-BOOL __stdcall Hook_SetWindowPos(HWND hWnd, HWND hWndInsertAfter, int X, int Y, int cx, int cy, UINT uFlags)
-{
-	return TRUE;
-}
-
-
-HWND __stdcall Hook_CreateWindowExA(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam)
-{
-	if (configMgr.GetConfig(TTX_CONFIG_FULLSCREEN))
-	{
-		dwExStyle = 0;
-		dwStyle = WS_EX_TOPMOST | WS_POPUP;
-		
-		x = 0;
-		y = 0;
-
-		return __CreateWindowExA(dwExStyle, lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
-	} 
-
-	dwExStyle = 0;
-	dwStyle = WS_OVERLAPPEDWINDOW;
-
-	RECT r;
-	r.right = nWidth;
-	r.bottom = nHeight;
-	r.top = 0;
-	r.left = 0;
-	
-	AdjustWindowRect(&r, dwStyle, FALSE);
-
-	nWidth = r.right-r.left;
-	nHeight = r.bottom - r.top;
-
-	return __CreateWindowExA(dwExStyle, lpClassName, lpWindowName, dwStyle, 0, 0, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
-}
-
-
-HWND __stdcall Hook_CreateWindowExW(DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam)
-{
-	if (configMgr.GetConfig(TTX_CONFIG_FULLSCREEN))
-	{
-		dwExStyle = 0;
-		dwStyle = WS_EX_TOPMOST | WS_POPUP;
-		
-		x = 0;
-		y = 0;
-
-		return __CreateWindowExW(dwExStyle, lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
-	}
-	
-	dwExStyle =0;
-	dwStyle = WS_OVERLAPPEDWINDOW;
-	
-	RECT r;
-	r.bottom = nHeight;
-	r.top = 0;
-	r.right = nWidth;
-	r.left = 0;
-	
-	AdjustWindowRect(&r, WS_OVERLAPPEDWINDOW, FALSE);
-
-	return __CreateWindowExW(dwExStyle, lpClassName, lpWindowName, dwStyle, x, y, r.right, r.bottom, hWndParent, hMenu, hInstance, lpParam);
-}
-
-
-LONG __stdcall Hook_ChangeDisplaySettings(DEVMODE *lpDevMode, DWORD dwflags)
+LONG APIENTRY Hook_ChangeDisplaySettingsA(DEVMODE* lpDevMode, DWORD dwflags)
 {
 	return DISP_CHANGE_SUCCESSFUL;
 }
 
-
-BOOL __stdcall Hook_ExitWindowsEx(UINT uFlags, DWORD dwReason)
+BOOL APIENTRY Hook_ExitWindowsEx(UINT uFlags, DWORD dwReason)
 {
 	return FALSE;
 }
 
+static DWORD LastPoll = 0, PollsPerSec = 0;
 
-int __stdcall Hook_ShowCursor(BOOL bShow)
-{
-	return __ShowCursor(TRUE);
-}
-
-
-HCURSOR __stdcall Hook_SetCursor(HCURSOR hCursor)
-{
-	return NULL;
-}
-
-
-SHORT __stdcall Hook_GetAsyncKeyState(int vKey)
-{
-	return 0;
-}
-
-
-BOOL __stdcall Hook_GetCommModemStatus(HANDLE hFile, LPDWORD lpModemStat)
+BOOL APIENTRY Hook_ClearCommError(HANDLE hFile, LPDWORD lpErrors, LPCOMSTAT lpStat)
 {
 	if (hFile != hConnection)
-		return __GetCommModemStatus(hFile, lpModemStat);
-
-	if (is_addressed())
-		*lpModemStat = 0x10;
-	else
-		*lpModemStat = 0;
-
-	return TRUE;
-}
-
-
-BOOL __stdcall Hook_EscapeCommFunction(HANDLE hFile, DWORD dwFunc)
-{
-	if (hFile != hConnection)
-		return __EscapeCommFunction(hFile, dwFunc);
-
-	return TRUE;
-}
-
-
-unsigned char control_byte_0()
-{
-	unsigned char s = 0;
-
-	if (inputMgr.GetState(P1_START))
-		s |= 0x80;
-	if (inputMgr.GetState(P1_SERVICE) || inputMgr.GetState(P2_SERVICE))
-		s |= 0x40;
-	if (inputMgr.GetState(P1_UP))
-		s |= 0x20;
-	if (inputMgr.GetState(P1_DOWN))
-		s |= 0x10;
-	if (inputMgr.GetState(P1_RIGHT))
-		s |= 0x04;
-	if (inputMgr.GetState(P1_LEFT))
-		s |= 0x08;
-	if (inputMgr.GetState(P1_BUTTON_1))
-		s |= 0x02;
-	if (inputMgr.GetState(P1_BUTTON_2))
-		s |= 0x01;
-	
-	return s;
-}
-
-
-unsigned char control_byte_1()
-{
-	unsigned char s = 0;
-	
-	if (inputMgr.GetState(P1_COIN))
-		s |= 0x01;
-	if (inputMgr.GetState(P1_BUTTON_3))
-		s |= 0x80;
-	if (inputMgr.GetState(P1_BUTTON_4))
-		s |= 0x40;
-	if (inputMgr.GetState(P1_BUTTON_5))
-		s |= 0x20;
-	if (inputMgr.GetState(P1_BUTTON_6))
-		s |= 0x10;
-	
-	return s;
-}
-
-
-unsigned char control_byte_2()
-{
-	unsigned char s = 0;
-	
-	if (inputMgr.GetState(P2_START))
-		s |= 0x80;
-	if (inputMgr.GetState(TEST_MODE))
-		s |= 0x40;
-	if (inputMgr.GetState(P2_UP))
-		s |= 0x20;
-	if (inputMgr.GetState(P2_DOWN))
-		s |= 0x10;
-	if (inputMgr.GetState(P2_RIGHT))
-		s |= 0x04;
-	if (inputMgr.GetState(P2_LEFT))
-		s |= 0x08;
-	if (inputMgr.GetState(P2_BUTTON_1))
-		s |= 0x02;
-	if (inputMgr.GetState(P2_BUTTON_2))
-		s |= 0x01;
-	
-	return s;
-}
-
-
-unsigned char control_byte_3()
-{
-	unsigned char s = 0;
-	
-	if (inputMgr.GetState(P2_COIN))
-		s |= 0x01;
-	if (inputMgr.GetState(P2_BUTTON_3))
-		s |= 0x80;
-	if (inputMgr.GetState(P2_BUTTON_4))
-		s |= 0x40;
-	if (inputMgr.GetState(P2_BUTTON_5))
-		s |= 0x20;
-	if (inputMgr.GetState(P2_BUTTON_6))
-		s |= 0x10;
-	
-	return s;
-}
-
-
-static DWORD last_i_poll = 0, polls_per_sec = 0;
-
-
-BOOL __stdcall Hook_ClearCommError(HANDLE hFile, LPDWORD lpErrors, LPCOMSTAT lpStat)
-{
-	if (hFile != hConnection)
-		return __ClearCommError(hFile, lpErrors, lpStat);
+	{
+		return HClearCommError(hFile, lpErrors, lpStat);
+	}
 
 	if (lpStat)
 	{
-		if (!replyBuffer.empty())
-			lpStat->cbInQue = replyBuffer.size();
-		else
-			lpStat->cbInQue = 0;
-		
-		if (is_addressed())
-		{
-			DWORD now = GetTickCount();
-			
-			if ((now - last_i_poll) >= 1000)
-				polls_per_sec = 0;
+		lpStat->cbInQue = !ReplyBuffer.empty() ? ReplyBuffer.size() : 0x00;
 
-			polls_per_sec++;
-			last_i_poll = now;
-			
+		if (IsAddressed())
+		{
+			DWORD tNow = GetTickCount();
+
+			if ((tNow - LastPoll) >= 1000)
+			{
+				PollsPerSec = 0;
+			}
+
+			PollsPerSec++;
+			LastPoll = tNow;
+
 			lpStat->cbInQue += 8;
-			replyBuffer.push(0x76);
-			replyBuffer.push(0xfd);
-			replyBuffer.push(0x08);
-			replyBuffer.push(control_byte_0());
-			replyBuffer.push(control_byte_1());
-			replyBuffer.push(control_byte_2());
-			replyBuffer.push(control_byte_3());
-			replyBuffer.push(0x42);
+			ReplyBuffer.push(0x76);
+			ReplyBuffer.push(0xFD);
+			ReplyBuffer.push(0x08);
+			ReplyBuffer.push(ControlByte0());
+			ReplyBuffer.push(ControlByte1());
+			ReplyBuffer.push(ControlByte2());
+			ReplyBuffer.push(ControlByte3());
+			ReplyBuffer.push(0x42);
 		}
 	}
 
 	return TRUE;
 }
 
-
-BOOL __stdcall Hook_SetupComm(HANDLE hFile, DWORD dwInQueue, DWORD dwOutQueue)
+BOOL APIENTRY Hook_CloseHandle(HANDLE hObject)
 {
-	if (hFile != hConnection)
-		return __SetupComm(hFile, dwInQueue, dwOutQueue);
-
-	return TRUE;
-}
-
-
-BOOL __stdcall Hook_GetCommState(HANDLE hFile, LPDCB lpDCB)
-{
-	if (hFile != hConnection)
-		return __GetCommState(hFile, lpDCB);
-
-	return TRUE;
-}
-
-
-BOOL __stdcall Hook_SetCommState(HANDLE hFile, LPDCB lpDCB)
-{
-	if (hFile != hConnection)
-		return __SetCommState(hFile, lpDCB);
-	
-	return TRUE;
-}
-
-
-BOOL __stdcall Hook_SetCommMask(HANDLE hFile, DWORD dwEvtMask)
-{
-	if (hFile != hConnection)
-		return __SetCommMask(hFile, dwEvtMask);
-
-	return TRUE;
-}
-
-
-BOOL __stdcall Hook_GetCommTimeouts(HANDLE hFile, LPCOMMTIMEOUTS lpCommTimeouts)
-{
-	if (hFile != hConnection)
-		return __GetCommTimeouts(hFile, lpCommTimeouts);
-
-	return TRUE;
-}
-
-
-BOOL __stdcall Hook_SetCommTimeouts(HANDLE hFile, LPCOMMTIMEOUTS lpCommTimeouts)
-{
-	if (hFile != hConnection)
-		return __SetCommTimeouts(hFile, lpCommTimeouts);
-
-	return TRUE;
-}
-
-
-BOOL __stdcall Hook_WriteFile(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToWrite, LPDWORD lpNumberOfBytesWritten, LPOVERLAPPED lpOverlapped)
-{
-	if (hFile != hConnection)
-		return __WriteFile(hFile, lpBuffer, nNumberOfBytesToWrite, lpNumberOfBytesWritten, lpOverlapped);
-
-	BYTE *ptr = (BYTE *) lpBuffer;
-
-	*lpNumberOfBytesWritten = nNumberOfBytesToWrite;
-	
-	static BYTE rbuffer[1024];
-	DWORD sz = process_stream((LPBYTE)lpBuffer, nNumberOfBytesToWrite, rbuffer, 1024);
-	
-	if (sz != 1)
+	if (hObject != hConnection)
 	{
-		for (DWORD i=0; i < sz; i++)
-			replyBuffer.push(rbuffer[i]);
+		return HCloseHandle(hObject);
+	}
+
+	else
+	{
+		ResetAddressed();
 	}
 
 	return TRUE;
 }
 
-
-BOOL __stdcall Hook_ReadFile(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPDWORD lpNumberOfBytesRead, LPOVERLAPPED lpOverlapped)
+BOOL APIENTRY Hook_EscapeCommFunction(HANDLE hFile, DWORD dwFunc)
 {
 	if (hFile != hConnection)
-		return __ReadFile(hFile, lpBuffer, nNumberOfBytesToRead, lpNumberOfBytesRead, lpOverlapped);
-
-	if (replyBuffer.size())
 	{
-		if (nNumberOfBytesToRead >= replyBuffer.size())
-			nNumberOfBytesToRead = replyBuffer.size();
-		
-		*lpNumberOfBytesRead = nNumberOfBytesToRead;
-		BYTE *ptr = (BYTE*) lpBuffer;
-		
-		for (DWORD i=0; i < nNumberOfBytesToRead; i++)
+		return HEscapeCommFunction(hFile, dwFunc);
+	}
+
+	return TRUE;
+}
+
+BOOL APIENTRY Hook_GetCommModemStatus(HANDLE hFile, LPDWORD lpModemStat)
+{
+	if (hFile != hConnection)
+	{
+		return HGetCommModemStatus(hFile, lpModemStat);
+	}
+
+	*lpModemStat = IsAddressed() ? 0x10 : 0;
+
+	return TRUE;
+}
+
+BOOL APIENTRY Hook_GetCommState(HANDLE hFile, LPDCB lpDCB)
+{
+	if (hFile != hConnection)
+	{
+		return HGetCommState(hFile, lpDCB);
+	}
+
+	return TRUE;
+}
+
+BOOL APIENTRY Hook_GetCommTimeouts(HANDLE hFile, LPCOMMTIMEOUTS lpCommTimeouts)
+{
+	if (hFile != hConnection)
+	{
+		return HGetCommTimeouts(hFile, lpCommTimeouts);
+	}
+
+	return TRUE;
+}
+
+BOOL APIENTRY Hook_SetCommMask(HANDLE hFile, DWORD dwEvtMask)
+{
+	if (hFile != hConnection)
+	{
+		return HSetCommMask(hFile, dwEvtMask);
+	}
+
+	return TRUE;
+}
+
+BOOL APIENTRY Hook_SetCommState(HANDLE hFile, LPDCB lpDCB)
+{
+	if (hFile != hConnection)
+	{
+		return HSetCommState(hFile, lpDCB);
+	}
+
+	return TRUE;
+}
+
+BOOL APIENTRY Hook_SetCommTimeouts(HANDLE hFile, LPCOMMTIMEOUTS lpCommTimeouts)
+{
+	if (hFile != hConnection)
+	{
+		return HSetCommTimeouts(hFile, lpCommTimeouts);
+	}
+
+	return TRUE;
+}
+
+BOOL APIENTRY Hook_SetupComm(HANDLE hFile, DWORD dwInQueue, DWORD dwOutQueue)
+{
+	if (hFile != hConnection)
+	{
+		return HSetupComm(hFile, dwInQueue, dwOutQueue);
+	}
+
+	return TRUE;
+}
+
+HANDLE APIENTRY Hook_CreateFileA(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile)
+{
+	if (!strcmp(lpFileName, "COM1"))
+	{
+		if (!isInitialized)
 		{
-			if (!replyBuffer.empty())
+			InputMgr.Init();
+			isInitialized = 1;
+		}
+
+		return hConnection;
+	}
+
+	return HCreateFileA(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
+}
+
+HANDLE APIENTRY Hook_CreateFileW(LPCWSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile)
+{
+	if (!wcscmp(lpFileName, L"COM1"))
+	{
+		if (!isInitialized)
+		{
+			InputMgr.Init();
+			isInitialized = 1;
+		}
+
+		return hConnection;
+	}
+	
+	return HCreateFileW(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
+}
+
+BOOL APIENTRY Hook_ReadFile(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPDWORD lpNumberOfBytesRead, LPOVERLAPPED lpOverlapped)
+{
+	if (hFile != hConnection)
+	{
+		return HReadFile(hFile, lpBuffer, nNumberOfBytesToRead, lpNumberOfBytesRead, lpOverlapped);
+	}
+
+	if (ReplyBuffer.size())
+	{
+		if (nNumberOfBytesToRead >= ReplyBuffer.size())
+		{
+			nNumberOfBytesToRead = ReplyBuffer.size();
+		}
+
+		*lpNumberOfBytesRead = nNumberOfBytesToRead;
+		BYTE* pBuffer = (BYTE*)lpBuffer;
+
+		for (DWORD i = 0; i < nNumberOfBytesToRead; i++)
+		{
+			if (!ReplyBuffer.empty())
 			{
-				*ptr++ = replyBuffer.front();
-				replyBuffer.pop();
+				*pBuffer++ = ReplyBuffer.front();
+				ReplyBuffer.pop();
 			}
-			
+
 			else
 			{
 				*lpNumberOfBytesRead = i;
@@ -506,90 +256,35 @@ BOOL __stdcall Hook_ReadFile(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytes
 			}
 		}
 	}
-	
+
 	else
 	{
 		*lpNumberOfBytesRead = 0;
-		return TRUE;
 	}
 
 	return TRUE;
 }
 
-
-BOOL __stdcall Hook_CloseHandle(HANDLE hObject)
+BOOL APIENTRY Hook_WriteFile(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToWrite, LPDWORD lpNumberOfBytesWritten, LPOVERLAPPED lpOverlapped)
 {
-	if (hObject != hConnection)
-		return __CloseHandle(hObject);
-	else
-		reset_addressed();
+	if (hFile != hConnection)
+	{
+		return HWriteFile(hFile, lpBuffer, nNumberOfBytesToWrite, lpNumberOfBytesWritten, lpOverlapped);
+	}
+
+	BYTE* pBuffer = (BYTE*)lpBuffer;
+	*lpNumberOfBytesWritten = nNumberOfBytesToWrite;
+
+	static BYTE rBuffer[1024];
+	DWORD Stream = ProcessStream((LPBYTE)lpBuffer, nNumberOfBytesToWrite, rBuffer, 1024);
+
+	if (Stream != 1)
+	{
+		for (DWORD i = 0; i < Stream; i++)
+		{
+			ReplyBuffer.push(rBuffer[i]);
+		}
+	}
 
 	return TRUE;
-}
-
-
-HANDLE __stdcall Hook_CreateFile(LPCTSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile)
-{
-	if (!strcmp(lpFileName, "COM1"))
-	{
-		if (!isInitialized)
-		{
-			inputMgr.Init();
-			isInitialized = 1;
-		}
-		
-		return hConnection;
-
-	}
-	
-	else
-		return __CreateFile(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
-}
-
-
-int _mbsnbcmp(const char *a, const char *b, int l)
-{
-	int ret = 0;
-	
-	for (int i=0;i<l;i++)
-	{
-		ret += ((int)*a - (int)*b);
-		++a;
-		++b;
-	}
-	
-	return ret;
-}
-
-HANDLE __stdcall Hook_CreateFileA(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile)
-{
-	if (!strcmp(lpFileName, "COM1"))
-	{
-		if (!isInitialized)
-		{
-			inputMgr.Init();
-			isInitialized = 1;
-		}
-		
-		return hConnection;
-	}
-	
-	return __CreateFileA(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
-}
-
-HANDLE __stdcall Hook_CreateFileW(LPCWSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile)
-{
-	if (!wcscmp(lpFileName, L"COM1"))
-	{
-		if (!isInitialized)
-		{
-			inputMgr.Init();
-			isInitialized = 1;
-		}
-		return hConnection;
-
-	}
-	
-	else
-		return __CreateFileW(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
 }
