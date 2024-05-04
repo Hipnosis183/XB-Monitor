@@ -1,4 +1,4 @@
-﻿using Microsoft.DirectX.DirectInput;
+using Microsoft.DirectX.DirectInput;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -64,7 +64,8 @@ namespace XBMonitor.Classes
             
             foreach (Device Device in Devices)
             {
-                if (Device.DeviceInformation.ProductGuid == DeviceGuid[Index].ProductGuid)
+                if (Device.DeviceInformation.ProductGuid == DeviceGuid[Index].ProductGuid &&
+                    Device.DeviceInformation.InstanceGuid == DeviceGuid[index].InstanceGuid)
                 {
                     try
                     {
